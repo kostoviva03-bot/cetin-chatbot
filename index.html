@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Цетин България — B2B Асистент</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+  :root { --bg:#f0f4f8; --surface:#fff; --surface2:#f8fafc; --border:#e2e8f0; --accent:#0066cc; --text:#1e293b; --text2:#64748b; --bot-bg:#f1f5f9; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); height:100vh; display:flex; align-items:center; justify-content:center; }
+  .chat { width:520px; height:740px; background:var(--surface); border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,0.12); display:flex; flex-direction:column; overflow:hidden; }
+  .header { background:linear-gradient(135deg,#0066cc,#0ea5e9); padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  .logo { width:40px; height:40px; background:rgba(255,255,255,0.2); border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:white; }
+  .hi h1 { font-size:15px; font-weight:600; color:white; }
+  .hi p { font-size:11px; color:rgba(255,255,255,0.75); margin-top:2px; }
+  .online { margin-left:auto; display:flex; align-items:center; gap:6px; font-size:11px; color:rgba(255,255,255,0.85); }
+  .dot { width:7px; height:7px; background:#4ade80; border-radius:50%; animation:pulse 2s infinite; }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+  .qbtns { padding:10px 14px; display:flex; gap:6px; flex-wrap:wrap; border-bottom:1px solid var(--border); background:var(--surface2); }
+  .qb { background:white; border:1px solid var(--border); color:var(--text2); padding:5px 11px; border-radius:20px; font-size:11px; cursor:pointer; transition:all 0.18s; font-family:'DM Sans',sans-serif; }
+  .qb:hover { border-color:var(--accent); color:var(--accent); background:#eff6ff; }
+  .msgs { flex:1; overflow-y:auto; padding:16px 14px; display:flex; flex-direction:column; gap:12px; }
+  .msgs::-webkit-scrollbar{width:3px} .msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  .msg { display:flex; gap:8px; animation:fadeUp 0.25s ease; }
+  .msg.user { flex-direction:row-reverse; }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .av { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; flex-shrink:0; }
+  .av.bot { background:linear-gradient(135deg,#0066cc,#0ea5e9); color:white; }
+  .av.user { background:var(--border); color:var(--text2); }
+  .bubble { padding:10px 13px; border-radius:14px; font-size:13px; line-height:1.55; max-width:85%; }
+  .msg.bot .bubble { background:var(--bot-bg); color:var(--text); border-top-left-radius:4px; }
+  .msg.user .bubble { background:linear-gradient(135deg,#0066cc,#0ea5e9); color:white; border-top-right-radius:4px; }
+  .card { background:white; border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-top:8px; font-size:12px; }
+  .ct { font-size:10px; font-weight:600; color:var(--accent); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+  .cr { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f1f5f9; align-items:center; gap:8px; }
+  .cr:last-child{border-bottom:none} .cl{color:var(--text2);flex-shrink:0} .cv{color:var(--text);font-weight:500;text-align:right}
+  .badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600}
+  .b-blue{background:#eff6ff;color:#0066cc} .b-green{background:#f0fdf4;color:#16a34a} .b-amber{background:#fffbeb;color:#d97706} .b-red{background:#fef2f2;color:#dc2626}
+  .child-card { background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:8px 10px; margin-top:6px; font-size:11px; }
+  .child-title { font-weight:600; color:var(--text2); margin-bottom:4px; font-size:10px; text-transform:uppercase; }
+  .search-box { background:white; border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-top:8px; }
+  .search-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px; }
+  .search-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text2); padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer; text-align:left; font-family:'DM Sans',sans-serif; transition:all 0.18s; }
+  .search-btn:hover { border-color:var(--accent); color:var(--accent); background:#eff6ff; }
+  .typing{display:flex;gap:4px;padding:10px 13px;background:var(--bot-bg);border-radius:14px;border-top-left-radius:4px;width:fit-content}
+  .typing span{width:6px;height:6px;background:var(--text2);border-radius:50%;animation:bounce 1.1s infinite}
+  .typing span:nth-child(2){animation-delay:.18s} .typing span:nth-child(3){animation-delay:.36s}
+  @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+  .inp-row{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;background:var(--surface)}
+  textarea{flex:1;border:1.5px solid var(--border);border-radius:12px;padding:9px 13px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);resize:none;outline:none;min-height:40px;max-height:100px;line-height:1.5;transition:border-color 0.2s;background:var(--surface2)}
+  textarea:focus{border-color:var(--accent)} textarea::placeholder{color:var(--text2)}
+  .sendbtn{width:40px;height:40px;background:linear-gradient(135deg,#0066cc,#0ea5e9);border:none;border-radius:12px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:opacity 0.2s}
+  .sendbtn:hover{opacity:0.88} .sendbtn:disabled{opacity:0.4;cursor:not-allowed}
+  .sendbtn svg{width:16px;height:16px;fill:white}
+</style>
+</head>
+<body>
+<div class="chat">
+  <div class="header">
+    <div class="logo">ЦБ</div>
+    <div class="hi">
+      <h1>Цетин България — B2B Асистент</h1>
+      <p>Feasibility Check · Data Services over FO</p>
+    </div>
+    <div class="online"><div class="dot"></div>Онлайн</div>
+  </div>
+  <div class="qbtns">
+    <button class="qb" onclick="q('Обясни ми процеса')">📖 Процесът</button>
+    <button class="qb" onclick="q('Какви са SLA сроковете?')">⏱ SLA</button>
+    <button class="qb" onclick="q('Покажи отворените заявки')">📋 Заявки</button>
+    <button class="qb" onclick="q('Заявки от тази седмица')">📅 Тази седмица</button>
+    <button class="qb" onclick="q('Обобщение на заявките')">📊 Обобщение</button>
+    <button class="qb" onclick="showSearchMenu()">🔍 Търсене</button>
+  </div>
+  <div class="msgs" id="msgs"></div>
+  <div class="inp-row">
+    <textarea id="inp" placeholder="Напр: CBP-24, ORD-2024, клиент Булсатком, заявки от Пловдив..." rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+    <button class="sendbtn" id="sb" onclick="send()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+<script>
+const REGIONS = ['София','Пловдив','Варна','Бургас','Стара Загора','Плевен','Русе','Видин','Велико Търново'];
+const SERVICES = ['Гарантиран интернет','Ethernet','IP Transit','MPLS','Dark Fiber','DIA'];
+
+async function jiraApi(path) {
+  try {
+    const res = await fetch('/.netlify/functions/jira', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ path })
+    });
+    return await res.json();
+  } catch(e) { return null; }
+}
+
+async function searchByField(fieldId, value, label) {
+  const jql = `project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND cf[${fieldId}] ~ "${value}" ORDER BY created DESC`;
+  const data = await jiraApi(`/rest/api/3/search?jql=${encodeURIComponent(jql)}&maxResults=10&fields=summary,status,customfield_10056,customfield_10060,customfield_10063`);
+  if (data?.issues?.length > 0) {
+    let html = `<b>Заявки по ${label}: "${value}" (${data.issues.length})</b><div class="card"><div class="ct">Намерени заявки</div>`;
+    data.issues.forEach(i => {
+      const cls = i.fields.status.name === 'Resolved' ? 'b-green' : 'b-blue';
+      html += `<div class="cr"><span class="cl">${i.key}</span><span class="cv">${i.fields.summary.substring(0,35)}... <span class="badge ${cls}">${i.fields.status.name}</span></span></div>`;
+    });
+    html += '</div>';
+    return html;
+  }
+  return `Няма намерени заявки по ${label} "<b>${value}</b>".`;
+}
+
+async function getIssueWithChildren(key) {
+  const issue = await jiraApi(`/rest/api/3/issue/${key}?fields=summary,status,assignee,created,customfield_10056,customfield_10057,customfield_10058,customfield_10059,customfield_10060,customfield_10061,customfield_10062,customfield_10063`);
+  if (!issue || !issue.fields) return null;
+
+  // Намери child заявките
+  const childData = await jiraApi(`/rest/api/3/search?jql=${encodeURIComponent(`project=CBP AND summary ~ "${issue.fields.summary.replace('Yettel - ','')}" AND (summary ~ "CTN" OR summary ~ "DC" OR summary ~ "FS") ORDER BY summary ASC`)}&maxResults=5&fields=summary,status,assignee`);
+
+  return { issue, children: childData?.issues || [] };
+}
+
+function getStatusBadge(status) {
+  if (status === 'Resolved') return 'b-green';
+  if (status.includes('progress')) return 'b-amber';
+  return 'b-blue';
+}
+
+const KB = {
+  процес: { kw:['процес','feasibility','как работи','обясни','какво е','fc'], ans:`<b>Feasibility Check — Data Services over Fiber Optics</b><br><br>Когато Yettel получи заявка от корпоративен клиент, Commercial екипът на Цетин я регистрира в системата.<br><br>Автоматично се изпращат <b>3 паралелни заявки</b> към:<br><br><div class="card"><div class="ct">Участващи екипи</div><div class="cr"><span class="cl">🏢 Data Center Implementation</span><span class="badge b-blue">SLA 3 дни</span></div><div class="cr"><span class="cl">🔧 Field Services</span><span class="badge b-blue">SLA 3 дни</span></div><div class="cr"><span class="cl">🌐 Core Transport Network</span><span class="badge b-blue">SLA 3 дни</span></div></div>` },
+  sla: { kw:['sla','срок','дни','колко','времен','изтича'], ans:`<b>SLA срокове — Feasibility Check</b><br><br><div class="card"><div class="ct">SLA по екипи</div><div class="cr"><span class="cl">Data Center Implementation</span><span class="cv">3 работни дни</span></div><div class="cr"><span class="cl">Field Services</span><span class="cv">3 работни дни</span></div><div class="cr"><span class="cl">Core Transport Network</span><span class="cv">3 работни дни</span></div></div>При изтичащ SLA системата автоматично изпраща <b>имейл напомняне</b>.` },
+  екипи: { kw:['екип','data center','field services','core transport','кой','какво прави'], ans:`<b>Екипи в Feasibility Check</b><br><br><div class="card"><div class="ct">🏢 Data Center Implementation</div><div class="cr"><span class="cl">Задача</span><span class="cv">Map Check & Cost Analysis</span></div></div><div class="card"><div class="ct">🔧 Field Services</div><div class="cr"><span class="cl">Задача</span><span class="cv">Technical Feasibility & Cost Analysis</span></div></div><div class="card"><div class="ct">🌐 Core Transport Network</div><div class="cr"><span class="cl">Задача</span><span class="cv">Technical Feasibility & Cost Analysis</span></div></div>` }
+};
+
+function getStaticAns(t) {
+  t = t.toLowerCase();
+  for (const [k,d] of Object.entries(KB)) {
+    if (d.kw.some(w => t.includes(w))) return d.ans;
+  }
+  return null;
+}
+
+function showSearchMenu() {
+  const html = `<b>🔍 Търсене по поле</b><div class="search-box"><div class="search-grid">
+    <button class="search-btn" onclick="promptSearch('номер на поръчка','10056')">📋 Номер на поръчка</button>
+    <button class="search-btn" onclick="promptSearch('адрес','10058')">📍 Адрес</button>
+    <button class="search-btn" onclick="promptSearch('краен клиент','10060')">🏢 Краен клиент</button>
+    <button class="search-btn" onclick="promptSearch('контакт','10061')">👤 Контакт</button>
+    <button class="search-btn" onclick="promptSearch('скорост','10059')">⚡ Скорост</button>
+    <button class="search-btn" onclick="promptSearch('регион','10063')">🗺️ Регион</button>
+    <button class="search-btn" onclick="promptSearch('булстат','10062')">🔢 Булстат</button>
+    <button class="search-btn" onclick="promptSearch('тип услуга','10057')">📡 Тип услуга</button>
+  </div></div>`;
+  addMsg('bot', html);
+}
+
+let searchField = null;
+let searchFieldId = null;
+
+function promptSearch(field, fieldId) {
+  searchField = field;
+  searchFieldId = fieldId;
+  document.getElementById('inp').placeholder = `Въведете стойност за търсене по ${field}...`;
+  document.getElementById('inp').focus();
+  addMsg('bot', `Въведете стойността за търсене по <b>${field}</b>:`);
+}
+
+function addMsg(role, html) {
+  const c = document.getElementById('msgs');
+  const d = document.createElement('div');
+  d.className = `msg ${role}`;
+  d.innerHTML = `<div class="av ${role}">${role==='bot'?'ЦБ':'ВИ'}</div><div class="bubble">${html}</div>`;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+
+function showTyping() {
+  const c = document.getElementById('msgs');
+  const d = document.createElement('div');
+  d.className = 'msg bot'; d.id = 'typ';
+  d.innerHTML = `<div class="av bot">ЦБ</div><div class="typing"><span></span><span></span><span></span></div>`;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+
+function q(text) { document.getElementById('inp').value = text; send(); }
+
+// Дати helper
+function getDateRange(period) {
+  const now = new Date();
+  let from;
+  if (period === 'week') {
+    from = new Date(now); from.setDate(now.getDate() - 7);
+  } else if (period === 'month') {
+    from = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (period === 'today') {
+    from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+  return from ? from.toISOString().split('T')[0] : null;
+}
+
+async function send() {
+  const inp = document.getElementById('inp');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = ''; inp.style.height = 'auto';
+  inp.placeholder = 'Напр: CBP-24, ORD-2024, клиент Булсатком, заявки от Пловдив...';
+  document.getElementById('sb').disabled = true;
+  addMsg('user', text);
+  showTyping();
+
+  const t = text.toLowerCase();
+  let reply = '';
+
+  if (searchField && searchFieldId) {
+    const field = searchField; const fieldId = searchFieldId;
+    searchField = null; searchFieldId = null;
+    reply = await searchByField(fieldId, text, field);
+
+  } else {
+    const cbpMatch = text.match(/CBP-\d+/i);
+    const ordMatch = text.match(/(?:ORD|SR)[-\s]?\d+[-\s]?\d*/i);
+    const region = REGIONS.find(r => t.includes(r.toLowerCase()));
+    const service = SERVICES.find(s => t.includes(s.toLowerCase()));
+    const clientMatch = t.match(/клиент\s+(.+)/);
+    const addressMatch = t.match(/адрес\s+(.+)/);
+    const speedMatch = t.match(/скорост\s+(.+)/);
+    const bulstatMatch = t.match(/\b\d{9}\b/);
+
+    // Дата търсене
+    const isThisWeek = t.includes('тази седмица') || t.includes('last week') || t.includes('седмицата');
+    const isThisMonth = t.includes('този месец') || t.includes('месеца');
+    const isToday = t.includes('днес') || t.includes('today');
+
+    // Статус филтър
+    const wantResolved = t.includes('приключен') || t.includes('затворен') || t.includes('resolved');
+    const wantOpen = t.includes('отворен') || t.includes('активн');
+
+    if (cbpMatch) {
+      const result = await getIssueWithChildren(cbpMatch[0].toUpperCase());
+      if (result) {
+        const f = result.issue.fields;
+        let html = `<b>${result.issue.key} — Пълен преглед</b><div class="card"><div class="ct">Yettel заявка</div>
+        <div class="cr"><span class="cl">Заглавие</span><span class="cv">${f.summary}</span></div>
+        <div class="cr"><span class="cl">Статус</span><span class="cv"><span class="badge ${getStatusBadge(f.status.name)}">${f.status.name}</span></span></div>
+        ${f.customfield_10056?`<div class="cr"><span class="cl">Номер поръчка</span><span class="cv">${f.customfield_10056}</span></div>`:''}
+        ${f.customfield_10057?`<div class="cr"><span class="cl">Тип услуга</span><span class="cv">${f.customfield_10057}</span></div>`:''}
+        ${f.customfield_10058?`<div class="cr"><span class="cl">Адрес</span><span class="cv">${f.customfield_10058}</span></div>`:''}
+        ${f.customfield_10059?`<div class="cr"><span class="cl">Скорост</span><span class="cv">${f.customfield_10059}</span></div>`:''}
+        ${f.customfield_10060?`<div class="cr"><span class="cl">Краен клиент</span><span class="cv">${f.customfield_10060}</span></div>`:''}
+        ${f.customfield_10063?`<div class="cr"><span class="cl">Регион</span><span class="cv">${f.customfield_10063}</span></div>`:''}
+        <div class="cr"><span class="cl">Създадена</span><span class="cv">${new Date(f.created).toLocaleDateString('bg-BG')}</span></div>
+        </div>`;
+
+        if (result.children.length > 0) {
+          html += `<div class="card" style="margin-top:8px"><div class="ct">Заявки към екипите</div>`;
+          result.children.forEach(ch => {
+            const prefix = ch.fields.summary.startsWith('CTN') ? '🌐 Core Transport' : ch.fields.summary.startsWith('DC') ? '🏢 Data Center' : '🔧 Field Services';
+            const cls = getStatusBadge(ch.fields.status.name);
+            html += `<div class="cr"><span class="cl">${prefix} (${ch.key})</span><span class="cv"><span class="badge ${cls}">${ch.fields.status.name}</span></span></div>`;
+          });
+          html += '</div>';
+        }
+        reply = html;
+      } else {
+        reply = `Не намирам заявка <b>${cbpMatch[0]}</b>.`;
+      }
+
+    } else if (isToday || isThisWeek || isThisMonth) {
+      const period = isToday ? 'today' : isThisWeek ? 'week' : 'month';
+      const fromDate = getDateRange(period);
+      const periodLabel = isToday ? 'днес' : isThisWeek ? 'тази седмица' : 'този месец';
+      let statusFilter = '';
+      if (wantResolved) statusFilter = ' AND status = Resolved';
+      else if (wantOpen) statusFilter = ' AND status != Resolved';
+      const jql = `project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND created >= "${fromDate}"${statusFilter} ORDER BY created DESC`;
+      const data = await jiraApi(`/rest/api/3/search?jql=${encodeURIComponent(jql)}&maxResults=10&fields=summary,status,customfield_10060,customfield_10063,created`);
+      if (data?.issues?.length > 0) {
+        let html = `<b>Заявки от ${periodLabel} (${data.issues.length})</b><div class="card"><div class="ct">Резултати</div>`;
+        data.issues.forEach(i => {
+          const cls = getStatusBadge(i.fields.status.name);
+          html += `<div class="cr"><span class="cl">${i.key} · ${new Date(i.fields.created).toLocaleDateString('bg-BG')}</span><span class="cv">${i.fields.summary.substring(0,30)}... <span class="badge ${cls}">${i.fields.status.name}</span></span></div>`;
+        });
+        html += '</div>';
+        reply = html;
+      } else {
+        reply = `Няма заявки от ${periodLabel}.`;
+      }
+
+    } else if (wantResolved && (t.includes('заявк') || t.includes('покажи'))) {
+      const data = await jiraApi(`/rest/api/3/search?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status = Resolved ORDER BY created DESC')}&maxResults=5&fields=summary,status`);
+      if (data?.issues?.length > 0) {
+        let html = `<b>Приключени заявки (${data.issues.length})</b><div class="card"><div class="ct">Resolved заявки</div>`;
+        data.issues.forEach(i => { html += `<div class="cr"><span class="cl">${i.key}</span><span class="cv">${i.fields.summary.substring(0,38)}... <span class="badge b-green">Resolved</span></span></div>`; });
+        html += '</div>';
+        reply = html;
+      } else { reply = 'Няма приключени заявки.'; }
+
+    } else if (ordMatch) {
+      reply = await searchByField('10056', ordMatch[0], 'номер на поръчка');
+    } else if (bulstatMatch) {
+      reply = await searchByField('10062', bulstatMatch[0], 'булстат');
+    } else if (region) {
+      reply = await searchByField('10063', region, 'регион');
+    } else if (service) {
+      reply = await searchByField('10057', service, 'тип услуга');
+    } else if (clientMatch) {
+      reply = await searchByField('10060', clientMatch[1].trim(), 'краен клиент');
+    } else if (addressMatch) {
+      reply = await searchByField('10058', addressMatch[1].trim(), 'адрес');
+    } else if (speedMatch) {
+      reply = await searchByField('10059', speedMatch[1].trim(), 'скорост');
+
+    } else if (t.includes('покажи') || t.includes('отворен') || t.includes('всички заявк')) {
+      const data = await jiraApi(`/rest/api/3/search?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status != Resolved ORDER BY created DESC')}&maxResults=5&fields=summary,status`);
+      if (data?.issues?.length > 0) {
+        let html = `<b>Отворени заявки (${data.issues.length})</b><div class="card"><div class="ct">Активни</div>`;
+        data.issues.forEach(i => { html += `<div class="cr"><span class="cl">${i.key}</span><span class="cv">${i.fields.summary.substring(0,38)}... <span class="badge b-blue">${i.fields.status.name}</span></span></div>`; });
+        html += '</div>';
+        reply = html;
+      } else { reply = 'Няма отворени заявки.'; }
+
+    } else if (t.includes('обобщение') || t.includes('статистика')) {
+      const [open, resolved] = await Promise.all([
+        jiraApi(`/rest/api/3/search?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status != Resolved')}&maxResults=0`),
+        jiraApi(`/rest/api/3/search?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status = Resolved')}&maxResults=0`)
+      ]);
+      reply = `<b>📊 Обобщение</b><div class="card"><div class="ct">Статистика</div>
+      <div class="cr"><span class="cl">Общо заявки</span><span class="cv">${(open?.total||0)+(resolved?.total||0)}</span></div>
+      <div class="cr"><span class="cl">Отворени</span><span class="cv"><span class="badge b-blue">${open?.total||0}</span></span></div>
+      <div class="cr"><span class="cl">Приключени</span><span class="cv"><span class="badge b-green">${resolved?.total||0}</span></span></div>
+      </div>`;
+    } else {
+      reply = getStaticAns(text) || `Мога да търся по:<br>• <b>Номер на заявка</b> (CBP-24) — с детайли на child заявките<br>• <b>Номер на поръчка, регион, клиент, услуга</b><br>• <b>Дата</b> (заявки от тази седмица / днес / този месец)<br>• <b>Статус</b> (само приключените заявки)<br>• Бутон 🔍 за търсене по всички полета`;
+    }
+  }
+
+  document.getElementById('typ')?.remove();
+  addMsg('bot', reply);
+  document.getElementById('sb').disabled = false;
+}
+
+setTimeout(() => {
+  addMsg('bot', `Здравейте! Аз съм <b>B2B асистентът на Цетин България</b>.<br><br>Мога да помогна с:<br>• <b>CBP-24</b> → пълен преглед с child заявките<br>• <b>Търсене по всички полета</b> (клиент, регион, услуга...)<br>• <b>Заявки от тази седмица / днес</b><br>• <b>Само приключените заявки</b><br>• Информация за процеса и SLA<br><br>Как мога да ви помогна?`);
+}, 300);
+</script>
+</body>
+</html>
