@@ -147,10 +147,10 @@ function showSearchMenu() {
     <button class="search-btn" onclick="promptSearch('номер на поръчка','10056')">📋 Номер на поръчка</button>
     <button class="search-btn" onclick="promptSearch('адрес','10058')">📍 Адрес</button>
     <button class="search-btn" onclick="promptSearch('краен клиент','10060')">🏢 Краен клиент</button>
-    <button class="search-btn" onclick="promptSearch('контакт','10061')">👤 Контакт</button>
+    <button class="search-btn" onclick="promptSearch('контакт','10062')">👤 Контакт</button>
     <button class="search-btn" onclick="promptSearch('скорост','10059')">⚡ Скорост</button>
     <button class="search-btn" onclick="promptSearch('регион','10063')">🗺️ Регион</button>
-    <button class="search-btn" onclick="promptSearch('булстат','10062')">🔢 Булстат</button>
+    <button class="search-btn" onclick="promptSearch('булстат','10061')">🔢 Булстат</button>
     <button class="search-btn" onclick="promptSearch('тип услуга','10057')">📡 Тип услуга</button>
   </div></div>`;
   addMsg('bot', html);
@@ -190,7 +190,11 @@ function getDateRange(period) {
   const now = new Date();
   let from;
   if (period === 'week') {
-    from = new Date(now); from.setDate(now.getDate() - 7);
+    from = new Date(now);
+    const day = now.getDay();
+    const diff = day === 0 ? 6 : day - 1;
+    from.setDate(now.getDate() - diff);
+    from.setHours(0,0,0,0);
   } else if (period === 'month') {
     from = new Date(now.getFullYear(), now.getMonth(), 1);
   } else if (period === 'today') {
@@ -271,10 +275,10 @@ async function send() {
       const fromDate = getDateRange(period);
       const periodLabel = isToday ? 'днес' : isThisWeek ? 'тази седмица' : 'този месец';
       let statusFilter = '';
-      if (wantResolved) statusFilter = ' AND status = Resolved';
-      else if (wantOpen) statusFilter = ' AND status != Resolved';
+      if (wantResolved) statusFilter = ' AND status = "Resolved"';
+      else if (wantOpen) statusFilter = ' AND status != "Resolved"';
       const jql = `project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND created >= "${fromDate}"${statusFilter} ORDER BY created DESC`;
-      const data = await jiraApi(`/rest/api/3/search?jql=${encodeURIComponent(jql)}&maxResults=10&fields=summary,status,customfield_10060,customfield_10063,created`);
+      const data = await jiraApi(`/rest/api/3/search?jql=${encodeURIComponent(jql)}&maxResults=10&fields=summary,status,customfield_10060,customfield_10063,created,customfield_10063`);
       if (data?.issues?.length > 0) {
         let html = `<b>Заявки от ${periodLabel} (${data.issues.length})</b><div class="card"><div class="ct">Резултати</div>`;
         data.issues.forEach(i => {
@@ -288,7 +292,7 @@ async function send() {
       }
 
     } else if (wantResolved && (t.includes('заявк') || t.includes('покажи'))) {
-      const data = await jiraApi(`/rest/api/3/search?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status = Resolved ORDER BY created DESC')}&maxResults=5&fields=summary,status`);
+      const data = await jiraApi(`/rest/api/3/search?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status = "Resolved" ORDER BY created DESC')}&maxResults=5&fields=summary,status`);
       if (data?.issues?.length > 0) {
         let html = `<b>Приключени заявки (${data.issues.length})</b><div class="card"><div class="ct">Resolved заявки</div>`;
         data.issues.forEach(i => { html += `<div class="cr"><span class="cl">${i.key}</span><span class="cv">${i.fields.summary.substring(0,38)}... <span class="badge b-green">Resolved</span></span></div>`; });
@@ -299,7 +303,7 @@ async function send() {
     } else if (ordMatch) {
       reply = await searchByField('10056', ordMatch[0], 'номер на поръчка');
     } else if (bulstatMatch) {
-      reply = await searchByField('10062', bulstatMatch[0], 'булстат');
+      reply = await searchByField('10061', bulstatMatch[0], 'булстат');
     } else if (region) {
       reply = await searchByField('10063', region, 'регион');
     } else if (service) {
@@ -312,7 +316,7 @@ async function send() {
       reply = await searchByField('10059', speedMatch[1].trim(), 'скорост');
 
     } else if (t.includes('покажи') || t.includes('отворен') || t.includes('всички заявк')) {
-      const data = await jiraApi(`/rest/api/3/search?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status != Resolved ORDER BY created DESC')}&maxResults=5&fields=summary,status`);
+      const data = await jiraApi(`/rest/api/3/search?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status != "Resolved" ORDER BY created DESC')}&maxResults=5&fields=summary,status`);
       if (data?.issues?.length > 0) {
         let html = `<b>Отворени заявки (${data.issues.length})</b><div class="card"><div class="ct">Активни</div>`;
         data.issues.forEach(i => { html += `<div class="cr"><span class="cl">${i.key}</span><span class="cv">${i.fields.summary.substring(0,38)}... <span class="badge b-blue">${i.fields.status.name}</span></span></div>`; });
@@ -322,8 +326,8 @@ async function send() {
 
     } else if (t.includes('обобщение') || t.includes('статистика')) {
       const [open, resolved] = await Promise.all([
-        jiraApi(`/rest/api/3/search?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status != Resolved')}&maxResults=0`),
-        jiraApi(`/rest/api/3/search?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status = Resolved')}&maxResults=0`)
+        jiraApi(`/rest/api/3/search?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status != "Resolved"')}&maxResults=0`),
+        jiraApi(`/rest/api/3/search?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status = "Resolved"')}&maxResults=0`)
       ]);
       reply = `<b>📊 Обобщение</b><div class="card"><div class="ct">Статистика</div>
       <div class="cr"><span class="cl">Общо заявки</span><span class="cv">${(open?.total||0)+(resolved?.total||0)}</span></div>
