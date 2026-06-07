@@ -292,7 +292,7 @@ async function send() {
       }
 
     } else if (wantResolved) {
-      const data = await jiraApi(`/rest/api/3/search/jql?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status = "Resolved" ORDER BY created DESC')}&maxResults=5&fields=summary,status`);
+      const data = await jiraApi(`/rest/api/3/search/jql?jql=${encodeURIComponent('project=CBP AND status = "Resolved" ORDER BY created DESC')}&maxResults=10&fields=summary,status`);
       if (data?.issues?.length > 0) {
         let html = `<b>Приключени заявки (${data.issues.length})</b><div class="card"><div class="ct">Resolved заявки</div>`;
         data.issues.forEach(i => { html += `<div class="cr"><span class="cl">${i.key}</span><span class="cv">${i.fields.summary.substring(0,38)}... <span class="badge b-green">Resolved</span></span></div>`; });
