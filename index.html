@@ -103,7 +103,7 @@ async function searchByField(fieldId, value, label) {
   if (data?.issues?.length > 0) {
     let html = `<b>Заявки по ${label}: "${value}" (${data.issues.length})</b><div class="card"><div class="ct">Намерени заявки</div>`;
     data.issues.forEach(i => {
-      const cls = (i.fields.i.fields.status.name === 'Done' || i.fields.status.name === 'Resolved') ? 'b-green' : 'b-blue';
+      const cls = (i.fields.i.fields.status.name === 'Resolved' || i.fields.status.name === 'Done') ? 'b-green' : 'b-blue';
       html += `<div class="cr"><span class="cl">${i.key}</span><span class="cv">${i.fields.summary.substring(0,35)}... <span class="badge ${cls}">${i.fields.status.name}</span></span></div>`;
     });
     html += '</div>';
@@ -275,7 +275,7 @@ async function send() {
       const fromDate = getDateRange(period);
       const periodLabel = isToday ? 'днес' : isThisWeek ? 'тази седмица' : 'този месец';
       let statusFilter = '';
-      if (wantResolved) statusFilter = ' AND status = "Done"';
+      if (wantResolved) statusFilter = ' AND status = "Resolved"';
       else if (wantOpen) statusFilter = ' AND status != "Resolved"';
       const jql = `project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND created >= "${fromDate}"${statusFilter} ORDER BY created DESC`;
       const data = await jiraApi(`/rest/api/3/search/jql?jql=${encodeURIComponent(jql)}&maxResults=10&fields=summary,status,customfield_10060,customfield_10063,created,customfield_10063`);
@@ -291,8 +291,8 @@ async function send() {
         reply = `Няма заявки от ${periodLabel}.`;
       }
 
-    } else if (wantResolved && (t.includes('заявк') || t.includes('покажи'))) {
-      const data = await jiraApi(`/rest/api/3/search/jql?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status = "Done" ORDER BY created DESC')}&maxResults=5&fields=summary,status`);
+    } else if (wantResolved) {
+      const data = await jiraApi(`/rest/api/3/search/jql?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status = "Resolved" ORDER BY created DESC')}&maxResults=5&fields=summary,status`);
       if (data?.issues?.length > 0) {
         let html = `<b>Приключени заявки (${data.issues.length})</b><div class="card"><div class="ct">Resolved заявки</div>`;
         data.issues.forEach(i => { html += `<div class="cr"><span class="cl">${i.key}</span><span class="cv">${i.fields.summary.substring(0,38)}... <span class="badge b-green">Resolved</span></span></div>`; });
@@ -327,7 +327,7 @@ async function send() {
     } else if (t.includes('обобщение') || t.includes('статистика')) {
       const [open, resolved] = await Promise.all([
         jiraApi(`/rest/api/3/search/jql?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status != "Resolved"')}&maxResults=0`),
-        jiraApi(`/rest/api/3/search/jql?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status = "Done"')}&maxResults=0`)
+        jiraApi(`/rest/api/3/search/jql?jql=${encodeURIComponent('project=CBP AND summary ~ "Yettel" AND summary !~ "CTN" AND summary !~ "DC" AND summary !~ "FS" AND status = "Resolved"')}&maxResults=0`)
       ]);
       reply = `<b>📊 Обобщение</b><div class="card"><div class="ct">Статистика</div>
       <div class="cr"><span class="cl">Общо заявки</span><span class="cv">${(open?.total||0)+(resolved?.total||0)}</span></div>
